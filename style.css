@@ -1,0 +1,155 @@
+body {
+    font-family: "Courier New", Courier, "Lucida Sans Typewriter", "Lucida Typewriter", monospace;
+    font-size: 12px;
+    background-color: #222222;
+    font-weight: bold;
+}
+div#game_window {
+    display: inline-block;
+    width: 640px;
+    height: 640px;
+    margin: 15px;
+    border: thick solid gray;
+}
+div.display {
+    display: inline-block;
+    position: absolute;
+    width: 620px;
+    height: 320px;
+    overflow: auto;
+    margin: 15px;
+    background-color: #CCCCCC;
+    border: thick solid gray;
+}
+div.small_display {
+    display: inline-block;
+    position: relative; 
+    width: 294px;
+    height: 300px;
+    overflow: auto;
+    margin-left: 15px;
+    margin-top: 10px;
+    background-color: #CCCCCC;
+    border: thick solid gray;
+}
+div#status, div#title_bar {
+    display: block;
+    position: relative;
+    margin-left: 15px;
+    width: 1310px;
+    background-color: black;
+    color: white;
+    border: thick solid gray;
+}
+div#dialog {
+    display: none;
+    position: fixed;
+    top: 100px;
+    left: 100px;
+    width: 480px;
+    height: 320px;
+    background-color: white;
+    color: black;
+    border: thick solid gray;
+}
+div#close {
+        background: #666666;
+    color: #FFFFFF !important;
+    line-height: 25px;
+    position: absolute;
+    right: -12px;
+    text-align: center;
+    top: -10px;
+    width: 24px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.5em;
+}
+table#connections {
+    width: 100%;
+    height: auto;
+}
+h2.underlined {
+    font-size: 2.25em;
+    text-decoration: underline;
+    text-align: center;
+    margin-bottom: 0px;
+}
+h3.subtitle {
+    text-align: center;
+    margin-top: 2px;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0px;
+    width: 100%;
+    height: auto;
+}
+th {
+    background-color: black;
+    color: white;
+}
+
+tr {
+    background-color: white;
+}
+td {
+
+}
+table#connections tr:hover {
+    background-color: black;
+    color: white;
+}
+th.connection {
+    width: 300px;
+}
+th.length {
+    width: 80px;
+}/*
+table#connections th.length:hover:before{
+    position:absolute;
+    display:block;
+    width: 220px;
+    padding: 5px;
+    border: thin solid black;
+    background-color: gray;
+    color: black;
+    content: "Length of the connection in Crudbury Units. Crudbury Units are a standardized unit of measurement defined by the mean number of moments of total existential malaise experienced by the average Crudbury citizen over a given distance traveling at a standard speed.";
+    text-align: center;
+    font-size: 12px;
+    font-weight: normal;
+    margin-left: 5px;
+    margin-top: 5px
+}
+table#connections th.value:hover:before{
+    position:absolute;
+    display:block;
+    width: 220px;
+    padding: 5px;
+    border: thin solid black;
+    background-color: gray;
+    color: black;
+    content: "Value of the connection in Crudmarks. Crudmarks are awarded by the Commision on Value Determinations for every registered unit of morale measured in Crudbury citizens at a given location.";
+    text-align: center;
+    font-size: 12px;
+    font-weight: normal;
+    margin-left: 5px;
+    margin-top: 5px
+}*/
+th.value {
+    width: 90px;
+}
+th.options {
+    width: 170px;
+}
+input.button {
+    font-family: "Courier New", Courier, monospace;
+    border: medium solid black;
+    background-color: dimgray;
+    color: white;
+}
+input.button:hover {
+    border: medium solid white;
+    font-weight: bold;
+    background-color: black;
+}
