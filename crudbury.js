@@ -459,52 +459,51 @@ function StockMarket() {
     this.mood = ":D";
     this.volatilityDescription = "";
     this.volatility = 0;
-    this.setVolatility();
     this.value = 0;
     this.connections = [];
-    StockMarket.prototype.evaluate = function () {
+    this.evaluate = function () {
         this.value = 0;
         for (var i = 0; i < this.connections.length; i++) {
             this.value += this.connections[i].value;
         }
-    }
-}
-StockMarket.prototype.setVolatility = function () {
-    var n = getRandInt(1, 10);
-    var desc = "";
-    this.volatility = n;
-    if (n < 3) desc = "calm and punctual";
-    if (n >= 3) desc = "thinking things over";
-    if (n >= 5) desc = "frequently forgetting what it was going to say";
-    if (n >= 7) desc = "having arguments with people in its sleep";
-    if (n >= 9) {
-        var things = ["the weather", "all the dogs running about", "greeting cards", "potted plants", "birthdays", "holidays", "mothers-in-law", "text messages", "secret night visits", "loud sirens", "the smell of smoke", "all the dust everywhere", "cheese", "ghostly apparitions", "daytime television", "long-lost friends", "long lines"];
-        var chance = getRandInt(0, things.length - 1);
-        desc = "feeling extremely anxious about " + things[chance];
-    }
-    if (n == 10) desc = "perturbed and agitated";
-    this.volatilityDescription = desc;
-}
-
-StockMarket.prototype.change = function () {
+    };
+    this.setVolatility = function () {
+        var n = getRandInt(1, 10);
+        var desc = "";
+        this.volatility = n;
+        if (n < 3) desc = "calm and punctual";
+        if (n >= 3) desc = "thinking things over";
+        if (n >= 5) desc = "frequently forgetting what it was going to say";
+        if (n >= 7) desc = "having arguments with people in its sleep";
+        if (n >= 9) {
+            var things = ["the weather", "all the dogs running about", "greeting cards", "potted plants", "birthdays", "holidays", "mothers-in-law", "text messages", "secret night visits", "loud sirens", "the smell of smoke", "all the dust everywhere", "cheese", "ghostly apparitions", "daytime television", "long-lost friends", "long lines"];
+            var chance = getRandInt(0, things.length - 1);
+            desc = "feeling extremely anxious about " + things[chance];
+        }
+        if (n == 10) desc = "perturbed and agitated";
+        this.volatilityDescription = desc;
+    };
     this.setVolatility();
-    this.modifier = getRandInt(1, 3);
-    if (this.happy == false) this.modifier = -this.modifier;
-    var moodChance = getRandInt(1, 100);
-    if (moodChance > (100 - (this.volatility * 2))) {
-        this.changeMood();
-    }
-}
-StockMarket.prototype.changeMood = function () {
-    if (this.happy == true) {
-        this.happy = false;
-        this.mood = "D:";
-        this.modifier = -this.modifier;
-    } else {
-        this.happy = true;
-        this.mood = ":D";
-        this.modifier = Math.abs(this.modifier);
-    }
+    this.change = function () {
+        this.setVolatility();
+        this.modifier = getRandInt(1, 3);
+        if (this.happy == false) this.modifier = -this.modifier;
+        var moodChance = getRandInt(1, 100);
+        if (moodChance > (100 - (this.volatility * 2))) {
+            this.changeMood();
+        }
+    };
+    this.changeMood = function () {
+        if (this.happy == true) {
+            this.happy = false;
+            this.mood = "D:";
+            this.modifier = -this.modifier;
+        } else {
+            this.happy = true;
+            this.mood = ":D";
+            this.modifier = Math.abs(this.modifier);
+        }
+    };
 }
 
 function Good(connection) {
@@ -575,11 +574,11 @@ function Good(connection) {
     }
 }
 
-// RENDER
+/***********************
+        RENDERER          
+***********************/
 
-function clearScreen() {
-    Game.engine.ui.canvas.width = Game.engine.ui.canvas.width;
-}
+function clearScreen() { Game.engine.ui.canvas.width = Game.engine.ui.canvas.width; }
 
 function renderDestination(circle) {
     Game.engine.ui.context.beginPath();
