@@ -88,6 +88,53 @@ function Engine() {
             }
         }
     };
+    this.clearScreen = function () { Game.engine.ui.canvas.width = Game.engine.ui.canvas.width; };
+    this.drawRect = function (c,x,y,w,h) {
+        var context = Game.engine.ui.context;
+        var m = Game.engine.map;
+        w = typeof w !== 'undefined' ? a : m.tileSize;
+        h = typeof h !== 'undefined' ? a : m.tileSize;
+        context.beginPath()
+        context.rect(x*w, y*h, w, h);
+        context.fillStyle = c;
+        context.fill();
+    };
+    this.renderTiles = function () {
+        var ts = Game.engine.map.tiles;
+        for (var i = 0; i < ts.length; i++) {
+            var t = ts[i];
+            var type = t.type;
+            var c = "black";
+            switch (type) {
+            case "grass":
+                c = "lightgray";
+                break;
+            case "water":
+                c = "#393939";
+                break;
+            case "mountain":
+                c = "dimgray";
+                break;
+            }
+            this.drawRect(c,t.x,t.y);
+        }
+    };
+    this.renderGrid = function () {
+        for (var x = 0; x < 20; x++) {
+            Game.engine.ui.context.beginPath();
+            Game.engine.ui.context.moveTo(x * Game.engine.map.tileSize, 0);
+            Game.engine.ui.context.lineTo(x * Game.engine.map.tileSize, Game.engine.map.w * Game.engine.map.tileSize);
+            Game.engine.ui.context.strokeStyle = "gray";
+            Game.engine.ui.context.stroke();
+        }
+        for (var y = 0; y < 20; y++) {
+            Game.engine.ui.context.beginPath();
+            Game.engine.ui.context.moveTo(0, y * Game.engine.map.tileSize);
+            Game.engine.ui.context.lineTo(Game.engine.map.h * Game.engine.map.tileSize, y * Game.engine.map.tileSize);
+            Game.engine.ui.context.strokeStyle = "gray";
+            Game.engine.ui.context.stroke();
+        }
+    };
 }
 
 //array prototypes
@@ -578,8 +625,6 @@ function Good(connection) {
         RENDERER          
 ***********************/
 
-function clearScreen() { Game.engine.ui.canvas.width = Game.engine.ui.canvas.width; }
-
 function renderDestination(circle) {
     Game.engine.ui.context.beginPath();
     Game.engine.ui.context.arc(circle.x, circle.y, 10, 0, Math.PI * 2, true);
@@ -624,46 +669,6 @@ function renderLine(line) {
     }
 }
 
-function renderGrid() {
-    for (var x = 0; x < 20; x++) {
-        Game.engine.ui.context.beginPath();
-        Game.engine.ui.context.moveTo(x * Game.engine.map.tileSize, 0);
-        Game.engine.ui.context.lineTo(x * Game.engine.map.tileSize, Game.engine.map.w * Game.engine.map.tileSize);
-        Game.engine.ui.context.strokeStyle = "gray";
-        Game.engine.ui.context.stroke();
-    }
-    for (var y = 0; y < 20; y++) {
-        Game.engine.ui.context.beginPath();
-        Game.engine.ui.context.moveTo(0, y * Game.engine.map.tileSize);
-        Game.engine.ui.context.lineTo(Game.engine.map.h * Game.engine.map.tileSize, y * Game.engine.map.tileSize);
-        Game.engine.ui.context.strokeStyle = "gray";
-        Game.engine.ui.context.stroke();
-    }
-}
-
-function renderTiles() {
-    for (var i = 0; i < Game.engine.map.tiles.length; i++) {
-        Game.engine.ui.context.beginPath();
-        Game.engine.ui.context.rect(Game.engine.map.tiles[i].x * Game.engine.map.tileSize, Game.engine.map.tiles[i].y * Game.engine.map.tileSize, Game.engine.map.tileSize, Game.engine.map.tileSize);
-        var type = Game.engine.map.tiles[i].type;
-        var color;
-        switch (type) {
-        case "grass":
-            color = "lightgray";
-            break;
-        case "water":
-            color = "#393939";
-            break;
-        case "mountain":
-            color = "dimgray";
-            break;
-        }
-        Game.engine.ui.context.fillStyle = color
-        Game.engine.ui.context.fill();
-
-    }
-}
-
 function renderGoods() {
     for (var i = 0; i < goods.length; i++) {
         goods[i].move();
@@ -673,9 +678,10 @@ function renderGoods() {
 }
 
 function renderEverything() {
-    clearScreen();
-    renderTiles();
-    renderGrid();
+    var e = Game.engine;
+    e.clearScreen();
+    e.renderTiles();
+    e.renderGrid();
     Game.engine.ui.render();
     var connectionWindow = "<table id='Game.engine.connections'><thead><tr><th class='connection' onClick='Game.engine.connections.sortByProp(\"name\");'>Connection</th><th class='length' onClick='Game.engine.connections.sortByProp(\"length\");'>Length (cu)</th><th class='value' onClick='Game.engine.connections.sortByProp(\"value\");'>Value (cm)</th><th colspan='2' class='options'>Options</th></tr></thead>";
     for (var i = 0; i < Game.engine.connections.length; i++) {
