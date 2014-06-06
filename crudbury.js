@@ -89,15 +89,39 @@ function Engine() {
         }
     };
     this.clearScreen = function () { Game.engine.ui.canvas.width = Game.engine.ui.canvas.width; };
-    this.drawRect = function (c,x,y,w,h) {
-        var context = Game.engine.ui.context;
+    this.drawRect = function (color,x,y,w,h) {
+        var c = Game.engine.ui.context;
         var m = Game.engine.map;
-        w = typeof w !== 'undefined' ? a : m.tileSize;
-        h = typeof h !== 'undefined' ? a : m.tileSize;
-        context.beginPath()
-        context.rect(x*w, y*h, w, h);
-        context.fillStyle = c;
-        context.fill();
+        w = typeof w !== 'undefined' ? w : m.tileSize;
+        h = typeof h !== 'undefined' ? h : m.tileSize;
+        c.beginPath()
+        c.rect(x*w, y*h, w, h);
+        c.fillStyle = color;
+        c.fill();
+    };
+    this.drawLine = function (x1,y1,x2,y2,color) {
+            var c = Game.engine.ui.context;
+            var m = Game.engine.map;
+            color = typeof color !== 'undefined' ? color : 'black';
+            c.beginPath();
+            c.moveTo(x1, y1);
+            c.lineTo(x2, y2);
+            c.strokeStyle = color;
+            c.stroke();
+    };
+    this.drawCirc = function (x,y,r,b,colorC,colorB) {
+        var c = Game.engine.ui.context;
+        r = typeof r !== 'undefined' ? r : Game.engine.map.tileSize/2;
+        b = typeof b !== 'undefined' ? b : 0;
+        colorC = typeof colorC !== 'undefined' ? colorC : 'black';
+        colorB = typeof colorB !== 'undefined' ? colorB : 'black';
+        c.beginPath();
+        c.arc(x,y,r,0,Math.PI * 2);
+        c.closePath();
+        c.fillStyle = colorC;
+        c.lineWidth = b;
+        c.strokeStyle = colorB;
+        c.stroke();
     };
     this.renderTiles = function () {
         var ts = Game.engine.map.tiles;
@@ -120,21 +144,26 @@ function Engine() {
         }
     };
     this.renderGrid = function () {
-        for (var x = 0; x < 20; x++) {
-            Game.engine.ui.context.beginPath();
-            Game.engine.ui.context.moveTo(x * Game.engine.map.tileSize, 0);
-            Game.engine.ui.context.lineTo(x * Game.engine.map.tileSize, Game.engine.map.w * Game.engine.map.tileSize);
-            Game.engine.ui.context.strokeStyle = "gray";
-            Game.engine.ui.context.stroke();
-        }
-        for (var y = 0; y < 20; y++) {
-            Game.engine.ui.context.beginPath();
-            Game.engine.ui.context.moveTo(0, y * Game.engine.map.tileSize);
-            Game.engine.ui.context.lineTo(Game.engine.map.h * Game.engine.map.tileSize, y * Game.engine.map.tileSize);
-            Game.engine.ui.context.strokeStyle = "gray";
-            Game.engine.ui.context.stroke();
-        }
+        var m = Game.engine.map;
+        var ts = m.tileSize;
+        for (var x = 0; x < 20; x++) { this.drawLine(x*ts,0,x*ts,m.w*ts,"gray") }
+        for (var y = 0; y < 20; y++) { this.drawLine(0,y*ts,m.h*ts,y*ts,"gray") }
     };
+    this.renderDest = function(circle) {
+        Game.engine.ui.context.beginPath();
+        Game.engine.ui.context.arc(circle.x, circle.y, 10, 0, Math.PI * 2, true);
+        Game.engine.ui.context.closePath();
+        if (circle.selected) {
+            Game.engine.ui.context.fillStyle = "lightgray";
+            Game.engine.ui.context.lineWidth = 5;
+            Game.engine.ui.context.strokeStyle = "dimgray";
+            Game.engine.ui.context.stroke();
+        } else Game.engine.ui.context.fillStyle = "black";
+        Game.engine.ui.context.fill();
+        Game.engine.ui.context.fillStyle = "black";
+        Game.engine.ui.context.font = "bold 1em Courier";
+        Game.engine.ui.context.fillText(circle.name, circle.x - 25, circle.y + 20);
+    }
 }
 
 //array prototypes
@@ -625,22 +654,6 @@ function Good(connection) {
         RENDERER          
 ***********************/
 
-function renderDestination(circle) {
-    Game.engine.ui.context.beginPath();
-    Game.engine.ui.context.arc(circle.x, circle.y, 10, 0, Math.PI * 2, true);
-    Game.engine.ui.context.closePath();
-    if (circle.selected) {
-        Game.engine.ui.context.fillStyle = "lightgray";
-        Game.engine.ui.context.lineWidth = 5;
-        Game.engine.ui.context.strokeStyle = "dimgray";
-        Game.engine.ui.context.stroke();
-    } else Game.engine.ui.context.fillStyle = "black";
-    Game.engine.ui.context.fill();
-    Game.engine.ui.context.fillStyle = "black";
-    Game.engine.ui.context.font = "bold 1em Courier";
-    Game.engine.ui.context.fillText(circle.name, circle.x - 25, circle.y + 20);
-}
-
 function renderGood(good) {
     Game.engine.ui.context.beginPath();
     Game.engine.ui.context.arc(good.x, good.y, 5, 0, Math.PI * 2, true);
@@ -706,7 +719,7 @@ function renderEverything() {
             }
         }
         d.market.evaluate();
-        renderDestination(d);
+        e.renderDest(d);
         destinationWindow += "<tr><td>" + d.name + "</td><td>" + d.population.value + "</td><td>" + d.market.value + "</td><td><input type='button' class='button' value='info'/></td>";
     }
     destinationWindow += "<tfoot><tr><th class='destination' onClick='Game.engine.destinations.sortByProp(\"name\");'>Municipality</td><th class='population' onClock='Game.engine.destinations.sortByProp(\"population.value\");'>Citizens</th><th class='value' onClick='Game.engine.destinations.sortByProp(\"market.value\");'>Value</th><th colspan='2' class='options'>Options</th></tr></tfoot></table>";
