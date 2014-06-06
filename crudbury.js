@@ -324,123 +324,128 @@ function handleInput() {
 ***********************/
 
 // destinations
-function Destination(x, y, name) {
-    this.x = x * Game.engine.map.tileSize;
-    this.y = y * Game.engine.map.tileSize;
+function Destination(x,y,n) {
+    var m = Game.engine.map;
+    var d = object.destination;
+    var p = d.population;
+    this.x = x * m.tileSize;
+    this.y = y * m.tileSize;
     this.tileX = x;
     this.tileY = y;
-    this.name = name;
+    this.name = n;
     this.connections = [];
     this.totalConnectionValue = 0;
     this.clock = new Clock();
-
     function Population() {
-        this.value = getRandInt(1, 10000);
-        Population.prototype.grow = function () {
-            var change = Math.round(Math.sqrt(this.value / 1000));
+        this.value = getRandInt(1,10000);
+        this.grow = function () {
+            var change = Math.round(Math.sqrt(this.value/1000));
             this.value += change;
-            if (object.destination.population.milestone.length == object.destination.population.description.length) {
-                for (var i = 0; i < object.destination.population.milestone.length; i++) {
-                    if (this.value > object.destination.population.milestone[i]) {
-                        this.description = object.destination.population.description[i];
-                    } else if (this.value < object.destination.population.milestone[0]) this.description = "insignificant settlement";
+            if (p.milestone.length == p.description.length) {
+                for (var i = 0; i < p.milestone.length; i++) {
+                    if (this.value > p.milestone[i]) {
+                        this.description = p.description[i];
+                    } else if (this.value < p.milestone[0]) this.description = "insignificant settlement";
                 }
             } else this.description = "place";
-        }
+        };
     }
     this.population = new Population();
     this.population.grow();
-    this.description = object.destination.description[getRandInt(0, object.destination.description.length - 1)];
-
+    this.description = d.description[getRandInt(0, d.description.length-1)];
     function Geography() {
-        this.type = object.destination.geography.type[getRandInt(0, object.destination.geography.type.length - 1)];
-        this.value = getRandInt(0, object.destination.geography.description.length - 1);
-        this.description = object.destination.geography.description[this.value];
-        this.modifier = object.destination.geography.modifier[this.value];
+        this.type = d.geography.type[getRandInt(0, d.geography.type.length-1)];
+        this.value = getRandInt(0, d.geography.description.length-1);
+        this.description = d.geography.description[this.value];
+        this.modifier = d.geography.modifier[this.value];
 
     }
     this.geography = new Geography();
-    this.baseValue = getRandInt(1, 1000) * Math.sqrt(this.population.value / 2000);
+    this.baseValue = getRandInt(1,1000)*Math.sqrt(this.population.value/2000);
     this.market = new StockMarket();
-
+    var g = object.good;
     function Factory() {
         this.productivity = 50;
-        this.type = getRandInt(0, object.good.type.length - 1);
-        this.product = object.good.type[this.type];
-        this.value = object.good.value[this.type];
+        this.type = getRandInt(0, g.type.length-1);
+        this.product = g.type[this.type];
+        this.value = g.value[this.type];
         this.clock = new Clock();
     }
     this.factory = new Factory();
-    this.factory.productivity = Math.round(50 / (this.population.value / 2000));
-    Game.engine.destinations.push(this);
-    Destination.prototype.receiveGood = function (good) {
-        var c = Game.engine.connections;
+    this.factory.productivity = Math.round(50/(this.population.value/2000));
+    var e = Game.engine;
+    e.destinations.push(this);
+    this.receiveGood = function (good) {
+        var c = e.connections;
         for (var i = 0; i < c.length; i++) {
             var newGoods = [];
             for (var g = 0; g < c[i].goods.length; g++) {
                 if (c[i].goods[g].id == good.id) {
-                    c[i].lastGoodValue = Math.round(good.value * (Math.sqrt(this.population.value / 1000)));
+                    c[i].lastGoodValue = Math.round(good.value*(Math.sqrt(this.population.value/1000)));
                     c[i].value += c[i].lastGoodValue;
-                    Game.engine.effects.fadeText("+ " + c[i].lastGoodValue + "", good.x, good.y);
+                    e.effects.fadeText("+ " + c[i].lastGoodValue + "", good.x, good.y);
                 } else newGoods.push(c[i].goods[g]);
             }
             c[i].goods = newGoods;
         }
-    }
+    };
 }
 
 // connections
-function Connection(begin, end) {
+function Connection(a,b) {
+    var e = Game.engine;
+    var u = e.ui;
     this.visible = true;
-    this.begin = begin;
-    this.end = end;
-    this.length = getLineLen(begin, end);
-    this.slope = getLineSlope(begin, end);
-    this.name = begin.name + " to " + end.name;
-    this.distanceModifier = getRandInt(80, 120);
+    this.begin = a;
+    this.end = b;
+    this.length = getLineLen(a,b);
+    this.slope = getLineSlope(a,b);
+    this.name = a.name + " to " + b.name;
+    this.distanceModifier = getRandInt(80,120);
     this.speed = 1;
-    this.value = Math.round((begin.baseValue + end.baseValue) * Math.sqrt(this.length / this.distanceModifier));
+    this.value = Math.round((a.baseValue+b.baseValue)*Math.sqrt(this.length/this.distanceModifier));
     this.lastGoodValue = 0;
-    Game.engine.ui.statusMessage = "A connection from " + this.name + " has been established by the Crudbury Committee on Punctuality.";
+    u.statusMessage = "A connection from " + this.name + " has been established by the Crudbury Committee on Punctuality.";
     this.goods = [];
     this.clock = new Clock();
     this.market = new StockMarket();
-    begin.market.connections.push(this);
-    end.market.connections.push(this);
-    Game.engine.connections.push(this);
-    Connection.prototype.evaluate = function () {
-        this.value +=
-            Math.round(
-                Math.sqrt((this.begin.baseValue + this.begin.population.value) / 3) + Math.sqrt((this.end.baseValue + this.end.population.value) / 3) + Math.sqrt(this.length / this.distanceModifier) / 2
-        ) * this.market.modifier;
-        if (this.value < 0) this.value = 0;
-    }
-    Connection.prototype.moveGood = function () {
+    a.market.connections.push(this);
+    b.market.connections.push(this);
+    e.connections.push(this);
+    this.evaluate = function () {
+        var t = this;
+        var a = t.begin;
+        var b = t.end;
+        t.value += Math.round(Math.sqrt((a.baseValue+a.population.value)/3)+Math.sqrt((b.baseValue+b.population.value)/3)+Math.sqrt(t.length/t.distanceModifier)/2)*t.market.modifier;
+        if (t.value < 0) t.value = 0;
+    };
+    this.moveGood = function () {
         this.goods.push(new Good(this));
-    }
+    };
 }
-
-function displayConnection(connection) {
-    for (var i = 0; i < Game.engine.connections.length; i++) {
-        if (connection.id === Game.engine.connections[i].name) {
-            var message = "";
-            message += "<table><th colspan=2>" + Game.engine.connections[i].name + "</th><tr><td>Volatility:</td><td>" + Game.engine.connections[i].market.volatility + "</td></tr></table>";
-            smallDisplays[0].innerHTML = message;
+function displayConnection(con) {
+    var c = Game.engine.connections;
+    for (var i = 0; i < cs.length; i++) {
+        if (con.id === c[i].name) {
+            var m = "";
+            m += "<table><th colspan=2>" + c[i].name + "</th><tr><td>Volatility:</td><td>" + c[i].market.volatility + "</td></tr></table>";
+            smallDisplays[0].innerHTML = m;
         }
     }
 }
-
-function deleteConnection(connection) {
-    for (var i = 0; i < Game.engine.connections.length; i++) {
-        if (Game.engine.connections[i].name === connection.id) {
+function deleteConnection(con) {
+    var c = Game.engine.connections;
+    for (var i = 0; i < c.length; i++) {
+        if (c[i].name === con.id) {
             Game.engine.ui.statusMessage = "By order of the Crudbury Committee on Punctuality, the connection from " + Game.engine.connections[i].name + " has been summarily destroyed.";
-            Game.engine.connections.splice(i, 1);
+            c.splice(i, 1);
         }
     }
-    for (var i = 0; i < Game.engine.destinations.length; i++) {
-        for (var c = 0; c < Game.engine.destinations[i].connections.length; c++) {
-            if (Game.engine.destinations[i].market.connections[c].name === connection.id) {
-                Game.engine.destinations[i].market.connections.splice(c, 1);
+    var d = Game.engine.destinations;
+    for (var i = 0; i < d.length; i++) {
+        for (var j = 0; j < d[i].connections.length; j++) {
+            if (d[i].market.connections[c].name === con.id) {
+                d[i].market.connections.splice(j, 1);
             }
         }
     }
