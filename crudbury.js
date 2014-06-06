@@ -1,5 +1,7 @@
-// GAME
-//function Game() {}
+/***********************
+         GAME          
+***********************/
+
 var Game = {
     fps: 60,
     frames: 0,
@@ -11,17 +13,19 @@ var Game = {
     engine: null,
     intervalId: null,
     run: function () {
-        Game.frames++;
-            if (Game.frames > Game.fps / Game.tickInterval) {
-                Game.ticks++;
-                Game.frames = 0;
-                if (Game.month < 12) Game.month++;
+        var g = Game;
+        var u = g.engine.ui;
+        g.frames++;
+            if (g.frames > g.fps / g.tickInterval) {
+                g.ticks++;
+                g.frames = 0;
+                if (g.month < 12) g.month++;
                 else {
-                    Game.month = 0;
-                    Game.year++;
+                    g.month = 0;
+                    g.year++;
                 }
             }
-            Game.engine.ui.statusWindow.innerHTML = "Month " + Game.month + ", Year " + Game.year + " | " + Game.engine.ui.statusMessage;
+            u.statusWindow.innerHTML = "Month " + g.month + ", Year " + g.year + " | " + u.statusMessage;
             handlePlayerInput();
             renderEverything();
     }
@@ -29,17 +33,21 @@ var Game = {
 Game.engine = new Engine();
 Game._intervalId = setInterval(Game.run, 1000 / Game.fps);
 
-//initialize game
 function init() {
-    Game.engine.ui.getDOMElements();
+    var g = Game;
+    var e = g.engine;
+    var u = e.ui;
     var body = document.getElementsByTagName('body')[0];
+    u.getDOMElements();
     createMap();
-    Game.engine.ui.canvas.addEventListener('click', function (evt) {
-        Game.engine.mouse.setCoordinates(Game.engine.ui.canvas, evt, Game.engine.mouse);
+    u.canvas.addEventListener('click', function (evt) {
+        e.mouse.setCoordinates(u.canvas, evt, e.mouse);
     }, false);
 }
 
-// ENGINE
+/***********************
+         ENGINE          
+***********************/
 
 Array.prototype.sortByProp = function (p) {
     return this.sort(function (a, b) {
@@ -60,30 +68,33 @@ function Engine() {
     this.clock = new Clock();
     this.destinations = [];
     this.connections = [];
-    Engine.prototype.getDestinationByName = function (name) {
-        for (var i = 0; i < this.destinations.length; i++) {
-            if (this.destinations[i].name == name) return i;
+    this.getDestByName = function (n) {
+        var d = this.destinations;
+        for (var i = 0; i < d.length; i++) {
+            if (d[i].name == n) return i;
+        }
+        return -1;
+    };
+    this.getDestByCoords = function (x,y) {
+        var d = this.destinations;
+        for (var i = 0; i < d.length; i++) {
+            if (d[i].tileX == x && d[i].tileY == y) return i;
         }
         return -1;
     }
-    Engine.prototype.getDestinationByCoordinates = function (x, y) {
-        for (var i = 0; i < this.destinations.length; i++) {
-            if (this.destinations[i].tileX == x && this.destinations[i].tileY == y) return i;
-        }
-        return -1;
-    }
-    Engine.prototype.selectDestinationsByConnection = function (connection, select) {
-        for (var i = 0; i < this.connections.length; i++) {
-            if (select) this.connections[i].visible = false;
-            else this.connections[i].visible = true;
-            if (this.connections[i].name == connection.id) {
-                if (select) {
-                    this.connections[i].visible = true;
-                    this.connections[i].begin.selected = true;
-                    this.connections[i].end.selected = true;
+    this.selDestByConn = function (conn,s) {
+        var c = this.connections;
+        for (var i = 0; i < c.length; i++) {
+            if (s) c[i].visible = false;
+            else c[i].visible = true;
+            if (c[i].name == conn.id) {
+                if (s) {
+                    c[i].visible = true;
+                    c[i].begin.selected = true;
+                    c[i].end.selected = true;
                 } else {
-                    this.connections[i].begin.selected = false;
-                    this.connections[i].end.selected = false;
+                    c[i].begin.selected = false;
+                    c[i].end.selected = false;
                 }
             }
         }
@@ -169,12 +180,12 @@ function createMap() {
         while (!found_coordinates) {
             var x = getRandomInt(2, 18);
             var y = getRandomInt(2, 18);
-            if (Game.engine.getDestinationByCoordinates(x, y) == -1) {
+            if (Game.engine.getDestByCoords(x, y) == -1) {
                 found_coordinates = true;
                 var found_name = false;
                 while (!found_name) {
                     var name = getRandomName();
-                    if (Game.engine.getDestinationByName(name) == -1) {
+                    if (Game.engine.getDestByName(name) == -1) {
                         var destination = new Destination(x, y, name);
                         found_name = true;
                     }
@@ -663,7 +674,7 @@ function renderEverything() {
         if (c.clock.ticked()) c.evaluate();
         var id = Game.engine.connections[i].name;
         renderLine(Game.engine.connections[i]);
-        connectionWindow += "<tr id='" + id + "' onMouseOver='Game.engine.selectDestinationsByConnection(this,true)' onMouseOut='Game.engine.selectDestinationsByConnection(this,false)'><td>" + Game.engine.connections[i].name + "</td><td>" + Game.engine.connections[i].length + "</td><td>" + Game.engine.connections[i].value + " (+" + Game.engine.connections[i].lastGoodValue + ") " + Game.engine.connections[i].market.mood + "</td><td><input type='button' class='button' value='info' id='" + id + "' onClick='displayConnection(this); Game.engine.ui.displayDialog(\"hey\");'/></td><td><input type='button' class='button'  value='scrap' id='" + id + "' onClick='deleteConnection(this)'/></td>";
+        connectionWindow += "<tr id='" + id + "' onMouseOver='Game.engine.selDestByConn(this,true)' onMouseOut='Game.engine.selDestByConn(this,false)'><td>" + Game.engine.connections[i].name + "</td><td>" + Game.engine.connections[i].length + "</td><td>" + Game.engine.connections[i].value + " (+" + Game.engine.connections[i].lastGoodValue + ") " + Game.engine.connections[i].market.mood + "</td><td><input type='button' class='button' value='info' id='" + id + "' onClick='displayConnection(this); Game.engine.ui.displayDialog(\"hey\");'/></td><td><input type='button' class='button'  value='scrap' id='" + id + "' onClick='deleteConnection(this)'/></td>";
     }
     connectionWindow += "<tfoot><th class='connection' onClick='Game.engine.connections.sortByProp(\"name\");'>Connection</th><th class='length' onClick='Game.engine.connections.sortByProp(\"length\");'>Length (cu)</th><th class='value' onClick='Game.engine.connections.sortByProp(\"value\");'>Value (cm)</th><th colspan='2' class='options'>Options</th></tr></table>";
     var destinationWindow = "<table id='Game.engine.destinations'><thead><tr><th class='destination' onClick='Game.engine.destinations.sortByProp(\"name\");'>Municipality</td><th class='population' onClock='Game.engine.destinations.sortByProp(\"population.value\");'>Citizens</th><th class='value' onClick='Game.engine.destinations.sortByProp(\"market.value\");'>Value</th><th colspan='2' class='options'>Options</th></tr></thead>";
