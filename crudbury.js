@@ -26,10 +26,10 @@ var Game = {
                 }
             }
             u.statusWindow.innerHTML = "Month " + g.month + ", Year " + g.year + " | " + u.statusMessage;
-            handlePlayerInput();
+            handleInput();
             renderEverything();
     }
-}
+};
 Game.engine = new Engine();
 Game._intervalId = setInterval(Game.run, 1000 / Game.fps);
 
@@ -38,27 +38,16 @@ function init() {
     var e = g.engine;
     var u = e.ui;
     var body = document.getElementsByTagName('body')[0];
-    u.getDOMElements();
+    u.getElems();
     createMap();
     u.canvas.addEventListener('click', function (evt) {
-        e.mouse.setCoordinates(u.canvas, evt, e.mouse);
+        e.mouse.setCoords(u.canvas, evt, e.mouse);
     }, false);
 }
 
 /***********************
          ENGINE          
 ***********************/
-
-Array.prototype.sortByProp = function (p) {
-    return this.sort(function (a, b) {
-        return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
-    });
-}
-Array.prototype.remove = function (from, to) {
-    var rest = this.slice((to || from) + 1 || this.length);
-    this.length = from < 0 ? this.length + from : from;
-    return this.push.apply(this, rest);
-};
 
 function Engine() {
     this.effects = new Effects();
@@ -81,7 +70,7 @@ function Engine() {
             if (d[i].tileX == x && d[i].tileY == y) return i;
         }
         return -1;
-    }
+    };
     this.selDestByConn = function (conn,s) {
         var c = this.connections;
         for (var i = 0; i < c.length; i++) {
@@ -98,137 +87,143 @@ function Engine() {
                 }
             }
         }
-    }
+    };
 }
+
+//array prototypes
+Array.prototype.sortByProp = function (p) {
+    return this.sort(function (a, b) {
+        return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
+    });
+}
+Array.prototype.remove = function (from, to) {
+    var rest = this.slice((to || from) + 1 || this.length);
+    this.length = from < 0 ? this.length + from : from;
+    return this.push.apply(this, rest);
+};
 
 //effects
 function Effects() {
     this.texts = [];
-
-    function Text(str, x, y) {
-        this.str = str;
+    function Text(s,x,y) {
+        this.str = s;
         this.x = x;
         this.y = y;
         this.fading = false;
         this.alpha = 1;
-        0;
-        Text.prototype.fade = function () {
+        this.fade = function () {
             this.y -= 0.5;
             this.alpha -= 0.05;
             this.speed = 0;
         }
     }
-    Effects.prototype.fadeText = function (str, x, y) {
-        var text = new Text(str, x, y);
-        text.fading = true;
-        this.texts.push(text);
-    }
-    Effects.prototype.process = function () {
-        for (var t = this.texts.length - 1; t >= 0; t--) {
-            Game.engine.ui.context.fillStyle = "rgba(255, 255, 255, " + this.texts[t].alpha + ")";
-            Game.engine.ui.context.font = "bold 1.1em Courier";
-            Game.engine.ui.context.fillText(this.texts[t].str, this.texts[t].x, this.texts[t].y);
-            if (this.texts[t].fading) {
-                this.texts[t].fade();
+    this.fadeText = function (s,x,y) {
+        var t = new Text(s,x,y);
+        t.fading = true;
+        this.texts.push(t);
+    };
+    this.process = function () {
+        var t = this.texts;
+        var u = Game.engine.ui;
+        for (var i = t.length - 1; i >= 0; i--) {
+            u.context.fillStyle = "rgba(255,255,255," + t[i].alpha + ")";
+            u.context.font = "bold 1.1em Courier";
+            u.context.fillText(t[i].str, t[i].x, t[i].y);
+            if (t[i].fading) {
+                t[i].fade();
             }
-            if (this.texts[t].alpha <= 0) this.texts.splice(t, 1);
+            if (t[i].alpha <= 0) t.splice(i, 1);
         }
-    }
+    };
 }
 
-// math methods
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
+// math functions
+function getRandInt(mn,mx) { return Math.floor(Math.random()*(mx-mn+1)+mn); }
+function getLineLen(a,b) { return Math.round(Math.sqrt(Math.pow((a.x-b.x),2)+Math.pow((a.y-b.y),2))); }
+function getLineSlope(a,b) { return Math.round((a.y-b.y)/(a.x-b.x)); }
+
+// metadata functions
+function getRandName() {
+    var p = object.destination.name.prefix;
+    var s = object.destination.name.suffix;
+    var n = p[getRandInt(0,p.length-1)]+s[getRandInt(0,s.length-1)];
+    return n;
 }
 
-function getLengthOfLine(begin, end) {
-    return Math.round(Math.sqrt(Math.pow((begin.x - end.x), 2) + Math.pow((begin.y - end.y), 2)));
-}
+/***********************
+         MAP          
+***********************/
 
-function getSlopeOfLine(begin, end) {
-    return Math.round((begin.y - end.y) / (begin.x - end.x));
-}
-
-function getRandomName() {
-    var prefix = ["Stone", "Middle", "Little", "Wen", "New", "Grove", "Haver", "Brad", "Lynn", "Wor", "Law", "Ames", "Tewks", "Box", "Dan", "Marl",
-        "Waver", "Nor", "Billing", "Strat", "Bever", "Sud", "Pel", "Plai", "Sea", "Shrews", "George", "Charles", "Am", "East"
-    ];
-    var suffix = ["field", "ham", "ton", "wich", "hill", "borough", "town", "ly", "castle", "chester", "chester-by-the-sea", "port", "ford", "over",
-        "stowe", "stow", "brook", "bridge", "worth", "mouth", "hampton", "worth-by-the-sea"
-    ];
-    var name = prefix[getRandomInt(0, prefix.length - 1)] + suffix[getRandomInt(0, suffix.length - 1)];
-    return name;
-}
-
-// map methods
-function Tile(x, y, type) {
+function Tile(x,y,t) {
     this.x = x;
     this.y = y;
-    this.type = type;
+    this.type = t;
 }
 
-function Map(w, h, tileSize) {
-    this.tileSize = tileSize;
-    this.w = w / tileSize;
-    this.h = h / tileSize;
+function Map(w,h,s) {
+    this.tileSize = s;
+    this.w = w / s;
+    this.h = h / s;
     this.tiles = [];
 }
 
 function createMap() {
+    var e = Game.engine;
     for (var i = 0; i < 8; i++) {
         var found_coordinates = false;
         while (!found_coordinates) {
-            var x = getRandomInt(2, 18);
-            var y = getRandomInt(2, 18);
-            if (Game.engine.getDestByCoords(x, y) == -1) {
+            var x = getRandInt(2, 18);
+            var y = getRandInt(2, 18);
+            if (e.getDestByCoords(x, y) == -1) {
                 found_coordinates = true;
                 var found_name = false;
                 while (!found_name) {
-                    var name = getRandomName();
-                    if (Game.engine.getDestByName(name) == -1) {
-                        var destination = new Destination(x, y, name);
+                    var n = getRandName();
+                    if (e.getDestByName(n) == -1) {
+                        var d = new Destination(x,y,n);
                         found_name = true;
                     }
                 }
             }
         }
     }
-    for (var x = 0; x < Game.engine.map.w; x++) {
-        for (var y = 0; y < Game.engine.map.h; y++) {
-            var tile = new Tile(x, y, "grass");
-            var chance = getRandomInt(0, 100);
-            if (chance > 80) tile.type = "water";
-            if (chance > 95) tile.type = "mountain";
-            Game.engine.map.tiles.push(tile);
+    var m = e.map;
+    for (var x = 0; x < m.w; x++) {
+        for (var y = 0; y < m.h; y++) {
+            var t = new Tile(x,y,"grass");
+            var c = getRandInt(0, 100);
+            if (c > 80) t.type = "water";
+            if (c > 95) t.type = "mountain";
+            m.tiles.push(t);
         }
     }
 }
 
-// time
+/***********************
+         CLOCK          
+***********************/
+
 function Clock() {
-    this.lastTicks = Game.ticks;
-    this.ticks = Game.ticks;
-}
-Clock.prototype.getTicks = function () {
-    return Game.ticks - this.ticks;
-}
-Clock.prototype.reset = function () {
-    this.ticks = Game.ticks;
-}
-Clock.prototype.ticked = function () {
-    if (this.getTicks() > Game.tickInterval) {
+    this.lastTicks, this.ticks = Game.ticks;
+    this.getTicks = function () { return Game.ticks - this.ticks };
+    this.reset = function () { this.ticks = Game.ticks };
+    this.ticked = function () {
+        if (this.getTicks() > Game.tickInterval) {
+            this.reset();
+            return true;
+        } else return false;
+    };
+    this.tickedByThisMuch = function (i) {
+     if (this.getTicks() > i) {
         this.reset();
         return true;
-    } else return false;
-}
-Clock.prototype.tickedByThisMuch = function (tickInterval) {
-    if (this.getTicks() > tickInterval) {
-        this.reset();
-        return true;
-    } else return false;
+    } else return false;       
+    }
 }
 
-// INTERFACE
+/***********************
+       INTERFACE          
+***********************/
 
 // mouse
 function Mouse() {
@@ -237,23 +232,24 @@ function Mouse() {
     this.clicked = false;
     this.currentTarget = 0;
     this.lastTarget = 0;
-    Mouse.prototype.reset = function () {
+    this.reset = function () {
         this.x = 0;
         this.y = 0;
         this.clicked = false;
-    }
-    Mouse.prototype.setCoordinates = function (canvas, evt) {
+    };
+    this.setCoords = function (canvas, evt) {
         var rect = Game.engine.ui.canvas.getBoundingClientRect();
         this.x = evt.clientX - rect.left;
         this.y = evt.clientY - rect.top;
         this.clicked = true;
-    }
+    };
 }
 
-function checkIfCircleClicked(circle, radius) {
-    var dx = Game.engine.mouse.x - circle.x;
-    var dy = Game.engine.mouse.y - circle.y;
-    if (dx * dx + dy * dy <= radius * radius) return true;
+function checkIfCircleClicked(c,r) {
+    var m = Game.engine.mouse;
+    var x = m.x-c.x;
+    var y = m.y-c.y;
+    if (x*x+y*y <= r*r) return true;
     else return false;
 }
 
@@ -263,7 +259,7 @@ function UserInterface() {
     this.statusMessage = "";
     this.titleMessage = "";
     this.clock = new Clock();
-    UserInterface.prototype.getDOMElements = function () {
+    this.getElems = function () {
         this.canvas = document.getElementById('game');
         this.context = this.canvas.getContext('2d');
         this.gameWindow = document.getElementById('game_window');
@@ -272,50 +268,60 @@ function UserInterface() {
         this.dialog = document.getElementById('dialog');
         this.display = document.getElementsByClassName('display')[0];
         this.smallDisplays = document.getElementsByClassName('small_display');
-    }
-    UserInterface.prototype.displayDialog = function (message) {
-        dialog.style.display = "block";
-        dialog.innerHTML = "" + message + "";
-        //var close = document.getElementById('close');
-        //close.innerHTML = "a href='#close' title='Close' id='close' onClick='dialog.style.display=\"none\"'>X</a>"
-    }
-    UserInterface.prototype.render = function () {
-        if (this.statusWindow.innerHTML != this.statusMessage.previous) {
-            this.statusMessage.previous = this.statusWindow.innerHTML;
-            this.statusWindow.innerHTML = "Month " + Game.month + ", Year " + Game.year + " | " + Game.engine.ui.statusMessage;
+    };
+    this.showDialog = function (m) {
+        this.dialog.style.display = "block";
+        this.dialog.innerHTML = "" + m + "";
+    };
+    this.render = function () {
+        var w = this.statusWindow;
+        var m = this.statusMessage;
+        var g = Game;
+        if (w.innerHTML != m.previous) {
+            m.previous = w.innerHTML;
+            w.innerHTML = "Month " + g.month + ", Year " + g.year + " | " + g.engine.ui.statusMessage;
         }
-    }
+    };
 }
 
-// handle all input
-function handlePlayerInput() {
-    if (Game.engine.mouse.clicked) {
+/***********************
+         INPUT          
+***********************/
+
+function handleInput() {
+    var g = Game;
+    var e = g.engine;
+    var m = e.mouse;
+    var d = e.destinations;
+    if (m.clicked) {
         var match = false;
-        for (var i = 0; i < Game.engine.destinations.length; i++) {
-            if (checkIfCircleClicked(Game.engine.destinations[i], 10)) {
-                if (Game.engine.mouse.currentTarget == Game.engine.destinations[i]) {
-                    if (Game.engine.mouse.currentTarget.selected) Game.engine.mouse.currentTarget.selected = false;
-                    else if (!Game.engine.mouse.currentTarget.selected) Game.engine.mouse.currentTarget.selected = true;
+        for (var i = 0; i < d.length; i++) {
+            if (checkIfCircleClicked(d[i], 10)) {
+                if (m.currentTarget == d[i]) {
+                    if (m.currentTarget.selected) m.currentTarget.selected = false;
+                    else if (!m.currentTarget.selected) m.currentTarget.selected = true;
                 } else {
-                    Game.engine.mouse.lastTarget.selected = false;
-                    Game.engine.mouse.lastTarget = Game.engine.mouse.currentTarget;
-                    Game.engine.mouse.currentTarget = Game.engine.destinations[i];
-                    Game.engine.mouse.currentTarget.selected = true;
+                    m.lastTarget.selected = false;
+                    m.lastTarget = m.currentTarget;
+                    m.currentTarget = d[i];
+                    m.currentTarget.selected = true;
                 }
                 match = true;
             }
         }
         if (match == false) {
-            for (var i = 0; i < Game.engine.destinations.length; i++) {
-                Game.engine.destinations[i].selected = false;
+            for (var i = 0; i < d.length; i++) {
+                d[i].selected = false;
             }
         }
-        if (Game.engine.mouse.currentTarget.selected && Game.engine.mouse.lastTarget.selected) var connection = new Connection(Game.engine.mouse.lastTarget, Game.engine.mouse.currentTarget);
+        if (m.currentTarget.selected && m.lastTarget.selected) var c = new Connection(m.lastTarget, m.currentTarget);
     }
-    Game.engine.mouse.reset();
+    m.reset();
 }
 
-// OBJECTS
+/***********************
+        OBJECTS          
+***********************/
 
 // destinations
 function Destination(x, y, name) {
@@ -329,7 +335,7 @@ function Destination(x, y, name) {
     this.clock = new Clock();
 
     function Population() {
-        this.value = getRandomInt(1, 10000);
+        this.value = getRandInt(1, 10000);
         Population.prototype.grow = function () {
             var change = Math.round(Math.sqrt(this.value / 1000));
             this.value += change;
@@ -344,22 +350,22 @@ function Destination(x, y, name) {
     }
     this.population = new Population();
     this.population.grow();
-    this.description = object.destination.description[getRandomInt(0, object.destination.description.length - 1)];
+    this.description = object.destination.description[getRandInt(0, object.destination.description.length - 1)];
 
     function Geography() {
-        this.type = object.destination.geography.type[getRandomInt(0, object.destination.geography.type.length - 1)];
-        this.value = getRandomInt(0, object.destination.geography.description.length - 1);
+        this.type = object.destination.geography.type[getRandInt(0, object.destination.geography.type.length - 1)];
+        this.value = getRandInt(0, object.destination.geography.description.length - 1);
         this.description = object.destination.geography.description[this.value];
         this.modifier = object.destination.geography.modifier[this.value];
 
     }
     this.geography = new Geography();
-    this.baseValue = getRandomInt(1, 1000) * Math.sqrt(this.population.value / 2000);
+    this.baseValue = getRandInt(1, 1000) * Math.sqrt(this.population.value / 2000);
     this.market = new StockMarket();
 
     function Factory() {
         this.productivity = 50;
-        this.type = getRandomInt(0, object.good.type.length - 1);
+        this.type = getRandInt(0, object.good.type.length - 1);
         this.product = object.good.type[this.type];
         this.value = object.good.value[this.type];
         this.clock = new Clock();
@@ -388,10 +394,10 @@ function Connection(begin, end) {
     this.visible = true;
     this.begin = begin;
     this.end = end;
-    this.length = getLengthOfLine(begin, end);
-    this.slope = getSlopeOfLine(begin, end);
+    this.length = getLineLen(begin, end);
+    this.slope = getLineSlope(begin, end);
     this.name = begin.name + " to " + end.name;
-    this.distanceModifier = getRandomInt(80, 120);
+    this.distanceModifier = getRandInt(80, 120);
     this.speed = 1;
     this.value = Math.round((begin.baseValue + end.baseValue) * Math.sqrt(this.length / this.distanceModifier));
     this.lastGoodValue = 0;
@@ -459,7 +465,7 @@ function StockMarket() {
     }
 }
 StockMarket.prototype.setVolatility = function () {
-    var n = getRandomInt(1, 10);
+    var n = getRandInt(1, 10);
     var desc = "";
     this.volatility = n;
     if (n < 3) desc = "calm and punctual";
@@ -468,7 +474,7 @@ StockMarket.prototype.setVolatility = function () {
     if (n >= 7) desc = "having arguments with people in its sleep";
     if (n >= 9) {
         var things = ["the weather", "all the dogs running about", "greeting cards", "potted plants", "birthdays", "holidays", "mothers-in-law", "text messages", "secret night visits", "loud sirens", "the smell of smoke", "all the dust everywhere", "cheese", "ghostly apparitions", "daytime television", "long-lost friends", "long lines"];
-        var chance = getRandomInt(0, things.length - 1);
+        var chance = getRandInt(0, things.length - 1);
         desc = "feeling extremely anxious about " + things[chance];
     }
     if (n == 10) desc = "perturbed and agitated";
@@ -477,9 +483,9 @@ StockMarket.prototype.setVolatility = function () {
 
 StockMarket.prototype.change = function () {
     this.setVolatility();
-    this.modifier = getRandomInt(1, 3);
+    this.modifier = getRandInt(1, 3);
     if (this.happy == false) this.modifier = -this.modifier;
-    var moodChance = getRandomInt(1, 100);
+    var moodChance = getRandInt(1, 100);
     if (moodChance > (100 - (this.volatility * 2))) {
         this.changeMood();
     }
@@ -511,7 +517,7 @@ function Good(connection) {
     this.movement = 0;
     this.clock = new Clock();
     Good.prototype.move = function (speed) {
-        this.id = getRandomInt(0, 10000000) + Game.ticks;
+        this.id = getRandInt(0, 10000000) + Game.ticks;
         this.movement++;
         if (this.movement < speed) return false;
         else this.movement = 0;
@@ -674,7 +680,7 @@ function renderEverything() {
         if (c.clock.ticked()) c.evaluate();
         var id = Game.engine.connections[i].name;
         renderLine(Game.engine.connections[i]);
-        connectionWindow += "<tr id='" + id + "' onMouseOver='Game.engine.selDestByConn(this,true)' onMouseOut='Game.engine.selDestByConn(this,false)'><td>" + Game.engine.connections[i].name + "</td><td>" + Game.engine.connections[i].length + "</td><td>" + Game.engine.connections[i].value + " (+" + Game.engine.connections[i].lastGoodValue + ") " + Game.engine.connections[i].market.mood + "</td><td><input type='button' class='button' value='info' id='" + id + "' onClick='displayConnection(this); Game.engine.ui.displayDialog(\"hey\");'/></td><td><input type='button' class='button'  value='scrap' id='" + id + "' onClick='deleteConnection(this)'/></td>";
+        connectionWindow += "<tr id='" + id + "' onMouseOver='Game.engine.selDestByConn(this,true)' onMouseOut='Game.engine.selDestByConn(this,false)'><td>" + Game.engine.connections[i].name + "</td><td>" + Game.engine.connections[i].length + "</td><td>" + Game.engine.connections[i].value + " (+" + Game.engine.connections[i].lastGoodValue + ") " + Game.engine.connections[i].market.mood + "</td><td><input type='button' class='button' value='info' id='" + id + "' onClick='displayConnection(this); Game.engine.ui.showDialog(\"hey\");'/></td><td><input type='button' class='button'  value='scrap' id='" + id + "' onClick='deleteConnection(this)'/></td>";
     }
     connectionWindow += "<tfoot><th class='connection' onClick='Game.engine.connections.sortByProp(\"name\");'>Connection</th><th class='length' onClick='Game.engine.connections.sortByProp(\"length\");'>Length (cu)</th><th class='value' onClick='Game.engine.connections.sortByProp(\"value\");'>Value (cm)</th><th colspan='2' class='options'>Options</th></tr></table>";
     var destinationWindow = "<table id='Game.engine.destinations'><thead><tr><th class='destination' onClick='Game.engine.destinations.sortByProp(\"name\");'>Municipality</td><th class='population' onClock='Game.engine.destinations.sortByProp(\"population.value\");'>Citizens</th><th class='value' onClick='Game.engine.destinations.sortByProp(\"market.value\");'>Value</th><th colspan='2' class='options'>Options</th></tr></thead>";
