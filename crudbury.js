@@ -1,3 +1,15 @@
+//array prototypes
+Array.prototype.sortByProp = function (p) {
+    return this.sort(function (a, b) {
+        return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
+    });
+}
+Array.prototype.remove = function (from, to) {
+    var rest = this.slice((to || from) + 1 || this.length);
+    this.length = from < 0 ? this.length + from : from;
+    return this.push.apply(this, rest);
+};
+
 /***********************
          GAME          
 ***********************/
@@ -100,14 +112,14 @@ function Engine() {
         c.fill();
     };
     this.drawLine = function (x1,y1,x2,y2,color) {
-            var c = Game.engine.ui.context;
-            var m = Game.engine.map;
-            color = typeof color !== 'undefined' ? color : 'black';
-            c.beginPath();
-            c.moveTo(x1, y1);
-            c.lineTo(x2, y2);
-            c.strokeStyle = color;
-            c.stroke();
+        var c = Game.engine.ui.context;
+        var m = Game.engine.map;
+        color = typeof color !== 'undefined' ? color : 'black';
+        c.beginPath();
+        c.moveTo(x1, y1);
+        c.lineTo(x2, y2);
+        c.strokeStyle = color;
+        c.stroke();
     };
     this.drawCirc = function (x,y,r,b,colorC,colorB) {
         var c = Game.engine.ui.context;
@@ -119,9 +131,12 @@ function Engine() {
         c.arc(x,y,r,0,Math.PI * 2);
         c.closePath();
         c.fillStyle = colorC;
-        c.lineWidth = b;
-        c.strokeStyle = colorB;
-        c.stroke();
+        c.fill();
+        if (b > 0) {
+            c.lineWidth = b;
+            c.strokeStyle = colorB;
+            c.stroke();
+        }
     };
     this.renderTiles = function () {
         var ts = Game.engine.map.tiles;
@@ -149,34 +164,7 @@ function Engine() {
         for (var x = 0; x < 20; x++) { this.drawLine(x*ts,0,x*ts,m.w*ts,"gray") }
         for (var y = 0; y < 20; y++) { this.drawLine(0,y*ts,m.h*ts,y*ts,"gray") }
     };
-    this.renderDest = function(circle) {
-        Game.engine.ui.context.beginPath();
-        Game.engine.ui.context.arc(circle.x, circle.y, 10, 0, Math.PI * 2, true);
-        Game.engine.ui.context.closePath();
-        if (circle.selected) {
-            Game.engine.ui.context.fillStyle = "lightgray";
-            Game.engine.ui.context.lineWidth = 5;
-            Game.engine.ui.context.strokeStyle = "dimgray";
-            Game.engine.ui.context.stroke();
-        } else Game.engine.ui.context.fillStyle = "black";
-        Game.engine.ui.context.fill();
-        Game.engine.ui.context.fillStyle = "black";
-        Game.engine.ui.context.font = "bold 1em Courier";
-        Game.engine.ui.context.fillText(circle.name, circle.x - 25, circle.y + 20);
-    }
 }
-
-//array prototypes
-Array.prototype.sortByProp = function (p) {
-    return this.sort(function (a, b) {
-        return (a[p] > b[p]) ? 1 : (a[p] < b[p]) ? -1 : 0;
-    });
-}
-Array.prototype.remove = function (from, to) {
-    var rest = this.slice((to || from) + 1 || this.length);
-    this.length = from < 0 ? this.length + from : from;
-    return this.push.apply(this, rest);
-};
 
 //effects
 function Effects() {
@@ -404,8 +392,8 @@ function Destination(x,y,n) {
     var m = Game.engine.map;
     var d = object.destination;
     var p = d.population;
-    this.x = x * m.tileSize;
-    this.y = y * m.tileSize;
+    this.x = x*m.tileSize;
+    this.y = y*m.tileSize;
     this.tileX = x;
     this.tileY = y;
     this.name = n;
@@ -465,6 +453,21 @@ function Destination(x,y,n) {
             c[i].goods = newGoods;
         }
     };
+    this.render = function() {
+        var c = Game.engine.ui.context;
+        var b = 0;
+        var cc = "black";
+        var cb = "black";
+        if (this.selected) {
+            cc = "lightgray";
+            b = 5;
+            cb = "dimgray";
+        }
+        Game.engine.drawCirc(this.x,this.y,10,b,cc,cb);
+        c.fillStyle = "black";
+        c.font = "bold 1em Courier";
+        c.fillText(this.name,this.x-25,this.y+20);
+    }
 }
 
 // connections
@@ -719,7 +722,7 @@ function renderEverything() {
             }
         }
         d.market.evaluate();
-        e.renderDest(d);
+        d.render();
         destinationWindow += "<tr><td>" + d.name + "</td><td>" + d.population.value + "</td><td>" + d.market.value + "</td><td><input type='button' class='button' value='info'/></td>";
     }
     destinationWindow += "<tfoot><tr><th class='destination' onClick='Game.engine.destinations.sortByProp(\"name\");'>Municipality</td><th class='population' onClock='Game.engine.destinations.sortByProp(\"population.value\");'>Citizens</th><th class='value' onClick='Game.engine.destinations.sortByProp(\"market.value\");'>Value</th><th colspan='2' class='options'>Options</th></tr></tfoot></table>";
