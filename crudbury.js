@@ -111,10 +111,12 @@ function Engine() {
         c.fillStyle = color;
         c.fill();
     };
-    this.drawLine = function (x1,y1,x2,y2,color) {
+    this.drawLine = function (x1,y1,x2,y2,color,w) {
         var c = Game.engine.ui.context;
         var m = Game.engine.map;
+        w = typeof w !== 'undefined' ? w : 1;
         color = typeof color !== 'undefined' ? color : 'black';
+        c.lineWidth = w;
         c.beginPath();
         c.moveTo(x1, y1);
         c.lineTo(x2, y2);
@@ -137,6 +139,14 @@ function Engine() {
             c.strokeStyle = colorB;
             c.stroke();
         }
+    };
+    this.drawText = function (t,x,y,col,s) {
+        var c = Game.engine.ui.context;
+        col = typeof col !== 'undefined' ? col : "black";
+        s = typeof s !== 'undefined' ? s : "bold 0.75em Courier";
+        c.fillStyle = col;
+        c.font = s;
+        c.fillText(t,x,y);
     };
     this.renderTiles = function () {
         var ts = Game.engine.map.tiles;
@@ -188,11 +198,10 @@ function Effects() {
     };
     this.process = function () {
         var t = this.texts;
-        var u = Game.engine.ui;
+        var e = Game.engine;
         for (var i = t.length - 1; i >= 0; i--) {
-            u.context.fillStyle = "rgba(255,255,255," + t[i].alpha + ")";
-            u.context.font = "bold 1.1em Courier";
-            u.context.fillText(t[i].str, t[i].x, t[i].y);
+            var c = "rgba(255,255,255," + t[i].alpha + ")";
+            e.drawText(t[i].str,t[i].x,t[i].y,c,"bold 1.1em Courier");
             if (t[i].fading) {
                 t[i].fade();
             }
@@ -454,7 +463,8 @@ function Destination(x,y,n) {
         }
     };
     this.render = function() {
-        var c = Game.engine.ui.context;
+        var e = Game.engine;
+        var c = e.ui.context;
         var b = 0;
         var cc = "black";
         var cb = "black";
@@ -463,10 +473,8 @@ function Destination(x,y,n) {
             b = 5;
             cb = "dimgray";
         }
-        Game.engine.drawCirc(this.x,this.y,10,b,cc,cb);
-        c.fillStyle = "black";
-        c.font = "bold 1em Courier";
-        c.fillText(this.name,this.x-25,this.y+20);
+        e.drawCirc(this.x,this.y,10,b,cc,cb);
+        e.drawText(this.name,this.x-25,this.y+20,"black","bold 1em Courier");
     }
 }
 
@@ -599,7 +607,7 @@ function Good(connection) {
     this.distanceToGo = connection.length;
     this.movement = 0;
     this.clock = new Clock();
-    Good.prototype.move = function (speed) {
+    this.move = function (speed) {
         this.id = getRandInt(0, 10000000) + Game.ticks;
         this.movement++;
         if (this.movement < speed) return false;
@@ -650,46 +658,25 @@ function Good(connection) {
                 }
             }
         }
-    }
+    };
+    this.render = function() {
+        var e = Game.engine;
+        var c = e.ui.context;
+        e.drawCirc(this.x, this.y,5,1,"dimgray","black");
+        e.drawText(this.value,this.x+6,this.y);
+    };
 }
 
 /***********************
         RENDERER          
 ***********************/
 
-function renderGood(good) {
-    Game.engine.ui.context.beginPath();
-    Game.engine.ui.context.arc(good.x, good.y, 5, 0, Math.PI * 2, true);
-    Game.engine.ui.context.closePath();
-    Game.engine.ui.context.fillStyle = "dimgray";
-    Game.engine.ui.context.fill();
-    Game.engine.ui.context.lineWidth = 1;
-    Game.engine.ui.context.strokeStyle = "black";
-    Game.engine.ui.context.stroke();
-    Game.engine.ui.context.fillStyle = "black";
-    Game.engine.ui.context.font = "bold 0.75em Courier";
-    Game.engine.ui.context.fillText(good.value, good.x + 6, good.y);
-}
-
 function renderLine(line) {
     if (line.visible == true) {
-        Game.engine.ui.context.beginPath();
-        Game.engine.ui.context.moveTo(line.begin.x, line.begin.y);
-        Game.engine.ui.context.lineTo(line.end.x, line.end.y);
-        Game.engine.ui.context.lineWidth = 2;
-        Game.engine.ui.context.lineWidth = 1 + line.value / 1000;
-        if (Game.engine.ui.context.lineWidth < 2) Game.engine.ui.context.lineWidth = 2;
-        else if (Game.engine.ui.context.lineWidth > 15) Game.engine.ui.context.lineWidth = 15;
-        Game.engine.ui.context.strokeStyle = "white";
-        Game.engine.ui.context.stroke();
-    }
-}
-
-function renderGoods() {
-    for (var i = 0; i < goods.length; i++) {
-        goods[i].move();
-        renderCircle(goods[i]);
-        smallDisplays[1].innerHTML = "" + goods[i].name + "";
+        var w = 1 + line.value / 1000;
+        if (w < 2) w = 2;
+        else if (w > 15) w = 15;
+        Game.engine.drawLine(line.begin.x, line.begin.y,line.end.x,line.end.y,"white",w);
     }
 }
 
@@ -756,7 +743,7 @@ function renderEverything() {
     }
     for (var i = 0; i < Game.engine.connections.length; i++) {
         for (var g = 0; g < Game.engine.connections[i].goods.length; g++) {
-            renderGood(Game.engine.connections[i].goods[g]);
+            Game.engine.connections[i].goods[g].render();
         }
     }
     Game.engine.effects.process();
