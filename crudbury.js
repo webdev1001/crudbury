@@ -328,7 +328,11 @@ function checkIfCircleClicked(c,r) {
 
 // user interface
 function UserInterface() {
-    this.displayContent = "";
+    this.displayContent = {
+        large: "",
+        small_1: "",
+        small_2: ""
+    }
     this.statusMessage = "";
     this.titleMessage = "";
     this.clock = new Clock();
@@ -339,12 +343,37 @@ function UserInterface() {
         this.statusWindow = document.getElementById('status');
         this.output = document.getElementById('output');
         this.dialog = document.getElementById('dialog');
-        this.display = document.getElementsByClassName('display')[0];
+        this.display = {
+            connections: document.getElementsByClassName('display')[0],
+            information: document.getElementsByClassName('small_display')[0],
+            destinations: document.getElementsByClassName('small_display')[1]
+        }
         this.smallDisplays = document.getElementsByClassName('small_display');
     };
     this.showDialog = function (m) {
         this.dialog.style.display = "block";
         this.dialog.innerHTML = "" + m + "";
+    };
+    this.showInformation = function (n) {
+        console.log(n);
+        var e = Game.engine;
+        var ds = e.destinations;
+        var o = null;
+        var m = "Error finding object.";
+        for (var i = 0; i < ds.length; i++) {
+            if (ds[i].name == n) {
+                o = ds[i];
+                //i = ds.length;
+            }
+        }
+        if (o) {
+            if (o.factory) {
+                m = "This factory produces " + o.factory.product + " at an efficiency of (" + o.factory.productivity + "). It is worth " + o.factory.value + ".";
+            }
+        } else m = "Error parsing object.";
+        this.displayContent.small_1 = m;
+        this.display.information.innerHTML = m;
+        console.log(m);
     };
     this.render = function () {
         var w = this.statusWindow;
@@ -685,14 +714,15 @@ function renderEverything() {
     e.clearScreen();
     e.renderTiles();
     e.renderGrid();
-    Game.engine.ui.render();
+    e.ui.render();
     var connectionWindow = "<table id='Game.engine.connections'><thead><tr><th class='connection' onClick='Game.engine.connections.sortByProp(\"name\");'>Connection</th><th class='length' onClick='Game.engine.connections.sortByProp(\"length\");'>Length (cu)</th><th class='value' onClick='Game.engine.connections.sortByProp(\"value\");'>Value (cm)</th><th colspan='2' class='options'>Options</th></tr></thead>";
-    for (var i = 0; i < Game.engine.connections.length; i++) {
-        var c = Game.engine.connections[i];
+    var cs = e.connections;
+    for (var i = 0; i < cs.length; i++) {
+        var c = cs[i];
         if (c.market.clock.tickedByThisMuch(c.market.volatility * 2)) c.market.change();
         if (c.clock.ticked()) c.evaluate();
-        var id = Game.engine.connections[i].name;
-        renderLine(Game.engine.connections[i]);
+        var id = cs[i].name;
+        renderLine(cs[i]);
         connectionWindow += "<tr id='" + id + "' onMouseOver='Game.engine.selDestByConn(this,true)' onMouseOut='Game.engine.selDestByConn(this,false)'><td>" + Game.engine.connections[i].name + "</td><td>" + Game.engine.connections[i].length + "</td><td>" + Game.engine.connections[i].value + " (+" + Game.engine.connections[i].lastGoodValue + ") " + Game.engine.connections[i].market.mood + "</td><td><input type='button' class='button' value='info' id='" + id + "' onClick='displayConnection(this); Game.engine.ui.showDialog(\"hey\");'/></td><td><input type='button' class='button'  value='scrap' id='" + id + "' onClick='deleteConnection(this)'/></td>";
     }
     connectionWindow += "<tfoot><th class='connection' onClick='Game.engine.connections.sortByProp(\"name\");'>Connection</th><th class='length' onClick='Game.engine.connections.sortByProp(\"length\");'>Length (cu)</th><th class='value' onClick='Game.engine.connections.sortByProp(\"value\");'>Value (cm)</th><th colspan='2' class='options'>Options</th></tr></table>";
@@ -710,15 +740,16 @@ function renderEverything() {
         }
         d.market.evaluate();
         d.render();
-        destinationWindow += "<tr><td>" + d.name + "</td><td>" + d.population.value + "</td><td>" + d.market.value + "</td><td><input type='button' class='button' value='info'/></td>";
+        destinationWindow += "<tr><td>" + d.name + "</td><td>" + d.population.value + "</td><td>" + d.market.value + "</td><td><input type='button' class='button' value='info' onClick='Game.engine.ui.showInformation(\""+d.name+"\")'/></td>";
     }
-    destinationWindow += "<tfoot><tr><th class='destination' onClick='Game.engine.destinations.sortByProp(\"name\");'>Municipality</td><th class='population' onClock='Game.engine.destinations.sortByProp(\"population.value\");'>Citizens</th><th class='value' onClick='Game.engine.destinations.sortByProp(\"market.value\");'>Value</th><th colspan='2' class='options'>Options</th></tr></tfoot></table>";
-    if (Game.engine.ui.smallDisplays[1].innerHTML != destinationWindow) {
-        Game.engine.ui.smallDisplays[1].innerHTML = destinationWindow;
+    destinationWindow += "<tfoot><tr><th class='destination' onClick='Game.engine.destinations.sortByProp(\"name\");'>Municipality</td><th class='population' onClick='Game.engine.destinations.sortByProp(\"population.value\");'>Citizens</th><th class='value' onClick='Game.engine.destinations.sortByProp(\"market.value\");'>Value</th><th colspan='2' class='options'>Options</th></tr></tfoot></table>";
+    if (Game.engine.ui.displayContent.small_2 != destinationWindow) {
+        Game.engine.ui.display.destinations.innerHTML = destinationWindow;
+        Game.engine.ui.displayContent.small_2 = destinationWindow;
     }
-    if (Game.engine.ui.displayContent != connectionWindow) {
-        Game.engine.ui.display.innerHTML = connectionWindow;
-        Game.engine.ui.displayContent = connectionWindow;
+    if (Game.engine.ui.displayContent.large != connectionWindow) {
+        Game.engine.ui.display.connections.innerHTML = connectionWindow;
+        Game.engine.ui.displayContent.large = connectionWindow;
     }
     var targetWindow = "";
     for (var i = 0; i < Game.engine.destinations.length; i++) {
@@ -735,7 +766,7 @@ function renderEverything() {
             targetWindow += "</table>";
         }
     }
-    Game.engine.ui.smallDisplays[0].innerHTML = targetWindow;
+    if (targetWindow) Game.engine.ui.smallDisplays[0].innerHTML = targetWindow;
     for (var i = 0; i < Game.engine.connections.length; i++) {
         for (var g = 0; g < Game.engine.connections[i].goods.length; g++) {
             Game.engine.connections[i].goods[g].move(Game.engine.connections[i].speed);
