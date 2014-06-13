@@ -3,15 +3,17 @@ body {
     font-size: 12px;
     background-color: #222222;
     font-weight: bold;
+    pointer-events: none;
 }
-div#game_window {
+#game_window {
     display: inline-block;
     width: 640px;
     height: 640px;
     margin: 15px;
     border: thick solid gray;
+    pointer-events: auto !important;
 }
-div.display {
+.display {
     display: inline-block;
     position: absolute;
     width: 620px;
@@ -20,8 +22,9 @@ div.display {
     margin: 15px;
     background-color: #CCCCCC;
     border: thick solid gray;
+    pointer-events: none;
 }
-div.small_display {
+.small_display {
     display: inline-block;
     position: relative; 
     width: 294px;
@@ -31,8 +34,9 @@ div.small_display {
     margin-top: 10px;
     background-color: #CCCCCC;
     border: thick solid gray;
+    pointer-events: none;
 }
-div#status, div#title_bar {
+#header, #footer {
     display: block;
     position: relative;
     margin-left: 15px;
@@ -41,7 +45,7 @@ div#status, div#title_bar {
     color: white;
     border: thick solid gray;
 }
-div#dialog {
+#dialog {
     display: none;
     position: fixed;
     top: 100px;
@@ -52,9 +56,9 @@ div#dialog {
     color: black;
     border: thick solid gray;
 }
-div#close {
-        background: #666666;
-    color: #FFFFFF !important;
+#close {
+    background: dimgray;
+    color: white !important;
     line-height: 25px;
     position: absolute;
     right: -12px;
@@ -64,8 +68,22 @@ div#close {
     text-decoration: none;
     font-weight: bold;
     font-size: 0.5em;
+    -webkit-border-radius: 12px;
+    -moz-border-radius: 12px;
+    -o-border-radius: 12px;
+    border-radius: 12px;
+    -moz-box-shadow: 1px 1px 3px #000;
+    -webkit-box-shadow: 1px 1px 3px #000;
+    -o-box-shadow: 1px 1px 3px #000;
+    box-shadow: 1px 1px 3px #000;
+    pointer-events: auto !important;
 }
-table#connections {
+#close:hover {
+    color: white;
+    background: black;
+    text-decoration: none;
+}
+#connections {
     width: 100%;
     height: auto;
 }
@@ -84,17 +102,20 @@ table {
     border-spacing: 0px;
     width: 100%;
     height: auto;
+    pointer-events: none;
 }
 th {
     background-color: black;
     color: white;
+    pointer-events: none;
 }
 
 tr {
     background-color: white;
+    pointer-events: none;
 }
 td {
-
+    pointer-events: none;
 }
 table#connections tr:hover {
     background-color: black;
@@ -105,37 +126,7 @@ th.connection {
 }
 th.length {
     width: 80px;
-}/*
-table#connections th.length:hover:before{
-    position:absolute;
-    display:block;
-    width: 220px;
-    padding: 5px;
-    border: thin solid black;
-    background-color: gray;
-    color: black;
-    content: "Length of the connection in Crudbury Units. Crudbury Units are a standardized unit of measurement defined by the mean number of moments of total existential malaise experienced by the average Crudbury citizen over a given distance traveling at a standard speed.";
-    text-align: center;
-    font-size: 12px;
-    font-weight: normal;
-    margin-left: 5px;
-    margin-top: 5px
 }
-table#connections th.value:hover:before{
-    position:absolute;
-    display:block;
-    width: 220px;
-    padding: 5px;
-    border: thin solid black;
-    background-color: gray;
-    color: black;
-    content: "Value of the connection in Crudmarks. Crudmarks are awarded by the Commision on Value Determinations for every registered unit of morale measured in Crudbury citizens at a given location.";
-    text-align: center;
-    font-size: 12px;
-    font-weight: normal;
-    margin-left: 5px;
-    margin-top: 5px
-}*/
 th.value {
     width: 90px;
 }
@@ -147,9 +138,11 @@ input.button {
     border: medium solid black;
     background-color: dimgray;
     color: white;
+    pointer-events: auto !important;
 }
 input.button:hover {
     border: medium solid white;
     font-weight: bold;
     background-color: black;
+    pointer-events: auto !important;
 }

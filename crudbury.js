@@ -37,7 +37,7 @@ var Game = {
                     g.year++;
                 }
             }
-            u.statusWindow.innerHTML = "Month " + g.month + ", Year " + g.year + " | " + u.statusMessage;
+            //u.panel.footer.element.innerHTML = "Month " + g.month + ", Year " + g.year + " | " + u.statusMessage;
             handleInput();
             renderEverything();
     }
@@ -328,31 +328,31 @@ function checkIfCircleClicked(c,r) {
 
 // user interface
 function UserInterface() {
-    this.displayContent = {
-        large: "",
-        small_1: "",
-        small_2: ""
+    function Window(i) {
+        this.element = document.getElementById(""+ i +"");
+        this.content = {
+            current: "",
+            previous: ""
+        };
+        this.update = function (m) {
+            this.content.previous = this.content.current;
+            this.content.current = m;
+        };
     }
-    this.statusMessage = "";
     this.titleMessage = "";
     this.clock = new Clock();
     this.getElems = function () {
         this.canvas = document.getElementById('game');
         this.context = this.canvas.getContext('2d');
         this.gameWindow = document.getElementById('game_window');
-        this.statusWindow = document.getElementById('status');
-        this.output = document.getElementById('output');
-        this.dialog = document.getElementById('dialog');
-        this.display = {
-            connections: document.getElementsByClassName('display')[0],
-            information: document.getElementsByClassName('small_display')[0],
-            destinations: document.getElementsByClassName('small_display')[1]
+        this.panel = {
+            header: new Window('header'),
+            top: new Window('top'),
+            left: new Window('left'),
+            right: new Window('right'),
+            footer: new Window('footer'),
+            dialog: new Window('dialog')
         }
-        this.smallDisplays = document.getElementsByClassName('small_display');
-    };
-    this.showDialog = function (m) {
-        this.dialog.style.display = "block";
-        this.dialog.innerHTML = "" + m + "";
     };
     this.showInformation = function (n) {
         console.log(n);
@@ -372,17 +372,13 @@ function UserInterface() {
             }
         } else m = "Error parsing object.";
         this.displayContent.small_1 = m;
-        this.display.information.innerHTML = m;
+        this.panel.left[0].innerHTML = m;
         console.log(m);
     };
     this.render = function () {
-        var w = this.statusWindow;
-        var m = this.statusMessage;
         var g = Game;
-        if (w.innerHTML != m.previous) {
-            m.previous = w.innerHTML;
-            w.innerHTML = "Month " + g.month + ", Year " + g.year + " | " + g.engine.ui.statusMessage;
-        }
+        var w = this.panel.footer;
+        w.element.innerHTML = "Month " + g.month + ", Year " + g.year + " | " + w.content.current;
     };
 }
 
@@ -521,7 +517,7 @@ function Connection(a,b) {
     this.speed = 1;
     this.value = Math.round((a.baseValue+b.baseValue)*Math.sqrt(this.length/this.distanceModifier));
     this.lastGoodValue = 0;
-    u.statusMessage = "A connection from " + this.name + " has been established by the Crudbury Committee on Punctuality.";
+    u.panel.footer.update("A connection from " + this.name + " has been established by the Crudbury Committee on Punctuality.");
     this.goods = [];
     this.clock = new Clock();
     this.market = new StockMarket();
@@ -553,7 +549,7 @@ function deleteConnection(con) {
     var c = Game.engine.connections;
     for (var i = 0; i < c.length; i++) {
         if (c[i].name === con.id) {
-            Game.engine.ui.statusMessage = "By order of the Crudbury Committee on Punctuality, the connection from " + Game.engine.connections[i].name + " has been summarily destroyed.";
+            Game.engine.ui.footer.update("By order of the Crudbury Committee on Punctuality, the connection from " + Game.engine.connections[i].name + " has been summarily destroyed.");
             c.splice(i, 1);
         }
     }
@@ -723,7 +719,7 @@ function renderEverything() {
         if (c.clock.ticked()) c.evaluate();
         var id = cs[i].name;
         renderLine(cs[i]);
-        connectionWindow += "<tr id='" + id + "' onMouseOver='Game.engine.selDestByConn(this,true)' onMouseOut='Game.engine.selDestByConn(this,false)'><td>" + Game.engine.connections[i].name + "</td><td>" + Game.engine.connections[i].length + "</td><td>" + Game.engine.connections[i].value + " (+" + Game.engine.connections[i].lastGoodValue + ") " + Game.engine.connections[i].market.mood + "</td><td><input type='button' class='button' value='info' id='" + id + "' onClick='displayConnection(this); Game.engine.ui.showDialog(\"hey\");'/></td><td><input type='button' class='button'  value='scrap' id='" + id + "' onClick='deleteConnection(this)'/></td>";
+        connectionWindow += "<tr id='" + id + "' onMouseOver='Game.engine.selDestByConn(this,true)' onMouseOut='Game.engine.selDestByConn(this,false)'><td>" + Game.engine.connections[i].name + "</td><td>" + Game.engine.connections[i].length + "</td><td>" + Game.engine.connections[i].value + " (+" + Game.engine.connections[i].lastGoodValue + ") " + Game.engine.connections[i].market.mood + "</td><td><input type='button' class='button' value='info' id='" + id + "' onClick=''/></td><td><input type='button' class='button'  value='scrap' id='" + id + "' onClick='deleteConnection(this)'/></td>";
     }
     connectionWindow += "<tfoot><th class='connection' onClick='Game.engine.connections.sortByProp(\"name\");'>Connection</th><th class='length' onClick='Game.engine.connections.sortByProp(\"length\");'>Length (cu)</th><th class='value' onClick='Game.engine.connections.sortByProp(\"value\");'>Value (cm)</th><th colspan='2' class='options'>Options</th></tr></table>";
     var destinationWindow = "<table id='Game.engine.destinations'><thead><tr><th class='destination' onClick='Game.engine.destinations.sortByProp(\"name\");'>Municipality</td><th class='population' onClock='Game.engine.destinations.sortByProp(\"population.value\");'>Citizens</th><th class='value' onClick='Game.engine.destinations.sortByProp(\"market.value\");'>Value</th><th colspan='2' class='options'>Options</th></tr></thead>";
@@ -743,13 +739,13 @@ function renderEverything() {
         destinationWindow += "<tr><td>" + d.name + "</td><td>" + d.population.value + "</td><td>" + d.market.value + "</td><td><input type='button' class='button' value='info' onClick='Game.engine.ui.showInformation(\""+d.name+"\")'/></td>";
     }
     destinationWindow += "<tfoot><tr><th class='destination' onClick='Game.engine.destinations.sortByProp(\"name\");'>Municipality</td><th class='population' onClick='Game.engine.destinations.sortByProp(\"population.value\");'>Citizens</th><th class='value' onClick='Game.engine.destinations.sortByProp(\"market.value\");'>Value</th><th colspan='2' class='options'>Options</th></tr></tfoot></table>";
-    if (Game.engine.ui.displayContent.small_2 != destinationWindow) {
-        Game.engine.ui.display.destinations.innerHTML = destinationWindow;
-        Game.engine.ui.displayContent.small_2 = destinationWindow;
+    if (Game.engine.ui.panel.right.content.current != destinationWindow) {
+        Game.engine.ui.panel.right.element.innerHTML = destinationWindow;
+        Game.engine.ui.panel.right.update(destinationWindow);
     }
-    if (Game.engine.ui.displayContent.large != connectionWindow) {
-        Game.engine.ui.display.connections.innerHTML = connectionWindow;
-        Game.engine.ui.displayContent.large = connectionWindow;
+    if (Game.engine.ui.panel.top.content.current != connectionWindow) {
+        Game.engine.ui.panel.top.element.innerHTML = connectionWindow;
+        Game.engine.ui.panel.right.update(connectionWindow);
     }
     var targetWindow = "";
     for (var i = 0; i < Game.engine.destinations.length; i++) {
@@ -766,7 +762,7 @@ function renderEverything() {
             targetWindow += "</table>";
         }
     }
-    if (targetWindow) Game.engine.ui.smallDisplays[0].innerHTML = targetWindow;
+    if (targetWindow) Game.engine.ui.panel.left.element.innerHTML = targetWindow;
     for (var i = 0; i < Game.engine.connections.length; i++) {
         for (var g = 0; g < Game.engine.connections[i].goods.length; g++) {
             Game.engine.connections[i].goods[g].move(Game.engine.connections[i].speed);
