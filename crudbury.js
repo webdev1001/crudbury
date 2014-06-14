@@ -338,6 +338,11 @@ function UserInterface() {
             this.content.previous = this.content.current;
             this.content.current = m;
         };
+        this.render = function () {
+            var c = this.content.current;
+            this.element.innerHTML = c;
+            this.update(c);
+        };
     }
     this.titleMessage = "";
     this.clock = new Clock();
@@ -376,9 +381,18 @@ function UserInterface() {
         console.log(m);
     };
     this.render = function () {
+        var p = this.panel;
+        var h = p.header.content;
+        var t = p.top.content;
+        var l = p.left.content;
+        var r = p.right.content;
+        if (h.current != h.previous) p.header.render();
+        if (t.current != t.previous) p.top.render();
+        if (l.current != l.previous) p.left.render();
+        if (r.current != r.previous) p.right.render();
         var g = Game;
-        var w = this.panel.footer;
-        w.element.innerHTML = "Month " + g.month + ", Year " + g.year + " | " + w.content.current;
+        var f = p.footer;
+        f.element.innerHTML = "Month " + g.month + ", Year " + g.year + " | " + f.content.current;
     };
 }
 
@@ -549,7 +563,7 @@ function deleteConnection(con) {
     var c = Game.engine.connections;
     for (var i = 0; i < c.length; i++) {
         if (c[i].name === con.id) {
-            Game.engine.ui.footer.update("By order of the Crudbury Committee on Punctuality, the connection from " + Game.engine.connections[i].name + " has been summarily destroyed.");
+            Game.engine.ui.panel.footer.update("By order of the Crudbury Committee on Punctuality, the connection from " + Game.engine.connections[i].name + " has been summarily destroyed.");
             c.splice(i, 1);
         }
     }
@@ -710,7 +724,6 @@ function renderEverything() {
     e.clearScreen();
     e.renderTiles();
     e.renderGrid();
-    e.ui.render();
     var connectionWindow = "<table id='Game.engine.connections'><thead><tr><th class='connection' onClick='Game.engine.connections.sortByProp(\"name\");'>Connection</th><th class='length' onClick='Game.engine.connections.sortByProp(\"length\");'>Length (cu)</th><th class='value' onClick='Game.engine.connections.sortByProp(\"value\");'>Value (cm)</th><th colspan='2' class='options'>Options</th></tr></thead>";
     var cs = e.connections;
     for (var i = 0; i < cs.length; i++) {
@@ -740,12 +753,10 @@ function renderEverything() {
     }
     destinationWindow += "<tfoot><tr><th class='destination' onClick='Game.engine.destinations.sortByProp(\"name\");'>Municipality</td><th class='population' onClick='Game.engine.destinations.sortByProp(\"population.value\");'>Citizens</th><th class='value' onClick='Game.engine.destinations.sortByProp(\"market.value\");'>Value</th><th colspan='2' class='options'>Options</th></tr></tfoot></table>";
     if (Game.engine.ui.panel.right.content.current != destinationWindow) {
-        Game.engine.ui.panel.right.element.innerHTML = destinationWindow;
         Game.engine.ui.panel.right.update(destinationWindow);
     }
     if (Game.engine.ui.panel.top.content.current != connectionWindow) {
-        Game.engine.ui.panel.top.element.innerHTML = connectionWindow;
-        Game.engine.ui.panel.right.update(connectionWindow);
+        Game.engine.ui.panel.top.update(connectionWindow);
     }
     var targetWindow = "";
     for (var i = 0; i < Game.engine.destinations.length; i++) {
@@ -773,5 +784,6 @@ function renderEverything() {
             Game.engine.connections[i].goods[g].render();
         }
     }
+    e.ui.render();
     Game.engine.effects.process();
 }

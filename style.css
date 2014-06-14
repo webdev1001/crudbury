@@ -3,7 +3,6 @@ body {
     font-size: 12px;
     background-color: #222222;
     font-weight: bold;
-    pointer-events: none;
 }
 #game_window {
     display: inline-block;
@@ -11,7 +10,6 @@ body {
     height: 640px;
     margin: 15px;
     border: thick solid gray;
-    pointer-events: auto !important;
 }
 .display {
     display: inline-block;
@@ -22,7 +20,6 @@ body {
     margin: 15px;
     background-color: #CCCCCC;
     border: thick solid gray;
-    pointer-events: none;
 }
 .small_display {
     display: inline-block;
@@ -34,7 +31,6 @@ body {
     margin-top: 10px;
     background-color: #CCCCCC;
     border: thick solid gray;
-    pointer-events: none;
 }
 #header, #footer {
     display: block;
@@ -102,21 +98,16 @@ table {
     border-spacing: 0px;
     width: 100%;
     height: auto;
-    pointer-events: none;
 }
 th {
     background-color: black;
     color: white;
-    pointer-events: none;
 }
 
 tr {
     background-color: white;
-    pointer-events: none;
 }
-td {
-    pointer-events: none;
-}
+
 table#connections tr:hover {
     background-color: black;
     color: white;
@@ -138,11 +129,9 @@ input.button {
     border: medium solid black;
     background-color: dimgray;
     color: white;
-    pointer-events: auto !important;
 }
 input.button:hover {
     border: medium solid white;
     font-weight: bold;
     background-color: black;
-    pointer-events: auto !important;
 }
