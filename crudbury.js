@@ -53,7 +53,6 @@ var Game = {
                     g.year++;
                 }
             }
-            //u.panel.footer.element.innerHTML = "Month " + g.month + ", Year " + g.year + " | " + u.statusMessage;
             handleInput();
             renderEverything();
     }
@@ -346,19 +345,6 @@ function checkIfCircleClicked(c,r) {
 function UserInterface() {
     function Window(i) {
         this.element = document.getElementById(""+ i +"");
-        this.content = {
-            current: "",
-            previous: ""
-        };
-        this.update = function (m) {
-            this.content.previous = this.content.current;
-            this.content.current = m;
-        };
-        this.render = function () {
-            var c = this.content.current;
-            this.element.innerHTML = c;
-            this.update(c);
-        };
     }
     this.titleMessage = "";
     this.clock = new Clock();
@@ -374,41 +360,6 @@ function UserInterface() {
             footer: new Window('footer'),
             dialog: new Window('dialog')
         }
-    };
-    this.showInformation = function (n) {
-        console.log(n);
-        var e = Game.engine;
-        var ds = e.destinations;
-        var o = null;
-        var m = "Error finding object.";
-        for (var i = 0; i < ds.length; i++) {
-            if (ds[i].name == n) {
-                o = ds[i];
-                //i = ds.length;
-            }
-        }
-        if (o) {
-            if (o.factory) {
-                m = "This factory produces " + o.factory.product + " at an efficiency of (" + o.factory.productivity + "). It is worth " + o.factory.value + ".";
-            }
-        } else m = "Error parsing object.";
-        this.displayContent.small_1 = m;
-        this.panel.left[0].innerHTML = m;
-        console.log(m);
-    };
-    this.render = function () {
-        var p = this.panel;
-        var h = p.header.content;
-        var t = p.top.content;
-        var l = p.left.content;
-        var r = p.right.content;
-        if (h.current != h.previous) p.header.render();
-        if (t.current != t.previous) p.top.render();
-        if (l.current != l.previous) p.left.render();
-        if (r.current != r.previous) p.right.render();
-        var g = Game;
-        var f = p.footer;
-        f.element.innerHTML = "Month " + g.month + ", Year " + g.year + " | " + f.content.current;
     };
 }
 
@@ -547,7 +498,6 @@ function Connection(a,b) {
     this.speed = 1;
     this.value = Math.round((a.baseValue+b.baseValue)*Math.sqrt(this.length/this.distanceModifier));
     this.lastGoodValue = 0;
-    u.panel.footer.update("A connection from " + this.name + " has been established by the Crudbury Committee on Punctuality.");
     this.goods = [];
     this.clock = new Clock();
     this.market = new StockMarket();
@@ -564,16 +514,6 @@ function Connection(a,b) {
     this.moveGood = function () {
         this.goods.push(new Good(this));
     };
-}
-function displayConnection(con) {
-    var c = Game.engine.connections;
-    for (var i = 0; i < cs.length; i++) {
-        if (con.id === c[i].name) {
-            var m = "";
-            m += "<table><th colspan=2>" + c[i].name + "</th><tr><td>Volatility:</td><td>" + c[i].market.volatility + "</td></tr></table>";
-            smallDisplays[0].innerHTML = m;
-        }
-    }
 }
 function deleteConnection(con) {
     var c = Game.engine.connections;
@@ -740,7 +680,6 @@ function renderEverything() {
     e.clearScreen();
     e.renderTiles();
     e.renderGrid();
-    var connectionWindow = "<table id='Game.engine.connections'><thead><tr><th class='connection' onClick='Game.engine.connections.sortByProp(\"name\");'>Connection</th><th class='length' onClick='Game.engine.connections.sortByProp(\"length\");'>Length (cu)</th><th class='value' onClick='Game.engine.connections.sortByProp(\"value\");'>Value (cm)</th><th colspan='2' class='options'>Options</th></tr></thead>";
     var cs = e.connections;
     for (var i = 0; i < cs.length; i++) {
         var c = cs[i];
@@ -748,10 +687,7 @@ function renderEverything() {
         if (c.clock.ticked()) c.evaluate();
         var id = cs[i].name;
         renderLine(cs[i]);
-        connectionWindow += "<tr id='" + id + "' onMouseOver='Game.engine.selDestByConn(this,true)' onMouseOut='Game.engine.selDestByConn(this,false)'><td>" + Game.engine.connections[i].name + "</td><td>" + Game.engine.connections[i].length + "</td><td>" + Game.engine.connections[i].value + " (+" + Game.engine.connections[i].lastGoodValue + ") " + Game.engine.connections[i].market.mood + "</td><td><input type='button' class='button' value='info' id='" + id + "' onClick=''/></td><td><input type='button' class='button'  value='scrap' id='" + id + "' onClick='deleteConnection(this)'/></td>";
     }
-    connectionWindow += "<tfoot><th class='connection' onClick='Game.engine.connections.sortByProp(\"name\");'>Connection</th><th class='length' onClick='Game.engine.connections.sortByProp(\"length\");'>Length (cu)</th><th class='value' onClick='Game.engine.connections.sortByProp(\"value\");'>Value (cm)</th><th colspan='2' class='options'>Options</th></tr></table>";
-    var destinationWindow = "<table id='Game.engine.destinations'><thead><tr><th class='destination' onClick='Game.engine.destinations.sortByProp(\"name\");'>Municipality</td><th class='population' onClock='Game.engine.destinations.sortByProp(\"population.value\");'>Citizens</th><th class='value' onClick='Game.engine.destinations.sortByProp(\"market.value\");'>Value</th><th colspan='2' class='options'>Options</th></tr></thead>";
     for (var i = 0; i < Game.engine.destinations.length; i++) {
         var d = Game.engine.destinations[i];
         if (d.market.clock.tickedByThisMuch(d.market.volatility * 2)) d.market.change();
@@ -765,31 +701,7 @@ function renderEverything() {
         }
         d.market.evaluate();
         d.render();
-        destinationWindow += "<tr><td>" + d.name + "</td><td>" + d.population.value + "</td><td>" + d.market.value + "</td><td><input type='button' class='button' value='info' onClick='Game.engine.ui.showInformation(\""+d.name+"\")'/></td>";
     }
-    destinationWindow += "<tfoot><tr><th class='destination' onClick='Game.engine.destinations.sortByProp(\"name\");'>Municipality</td><th class='population' onClick='Game.engine.destinations.sortByProp(\"population.value\");'>Citizens</th><th class='value' onClick='Game.engine.destinations.sortByProp(\"market.value\");'>Value</th><th colspan='2' class='options'>Options</th></tr></tfoot></table>";
-    if (Game.engine.ui.panel.right.content.current != destinationWindow) {
-        Game.engine.ui.panel.right.update(destinationWindow);
-    }
-    if (Game.engine.ui.panel.top.content.current != connectionWindow) {
-        Game.engine.ui.panel.top.update(connectionWindow);
-    }
-    var targetWindow = "";
-    for (var i = 0; i < Game.engine.destinations.length; i++) {
-        if (Game.engine.destinations[i] == Game.engine.mouse.currentTarget) {
-            var d = Game.engine.destinations[i];
-            targetWindow += "<table>";
-            targetWindow += "<thead><th colspan=2><h2 class='underlined'>" + d.name + "</h2></th></thead>";
-            targetWindow += "<tr><td colspan=2><h3 class='subtitle'>A " + d.description + " " + d.population.description + " in Crudbury</h3></td></tr>";
-            targetWindow += "<tr><td colspan=2>it is surrounded by " + d.geography.description + " " + d.geography.type + "</td></tr>";
-            targetWindow += "<tr><td colspan=2><h3>the populace is " + d.market.volatilityDescription + "</h3></td></tr>";
-            targetWindow += "<tr><td colspan=2>they are pleased to produce " + d.factory.product + " for Crudbury</td></tr>";
-            targetWindow += "<tr><td>citizens existing:</td><td>" + d.population.value + "</td></tr>";
-            targetWindow += "<tr><td>connections (total value):</td><td>" + d.market.connections.length + " (" + d.market.value + ")</td></tr>";
-            targetWindow += "</table>";
-        }
-    }
-    if (targetWindow) Game.engine.ui.panel.left.element.innerHTML = targetWindow;
     for (var i = 0; i < Game.engine.connections.length; i++) {
         for (var g = 0; g < Game.engine.connections[i].goods.length; g++) {
             Game.engine.connections[i].goods[g].move(Game.engine.connections[i].speed);
@@ -800,6 +712,7 @@ function renderEverything() {
             Game.engine.connections[i].goods[g].render();
         }
     }
-    e.ui.render();
     Game.engine.effects.process();
 }
+
+init();
