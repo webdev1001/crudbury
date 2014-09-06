@@ -1,0 +1,29 @@
+// color variables
+$white: #ffffff;
+$black: #000000;
+$grey-dark: #222222;
+$grey: #555555;
+$grey-light: #999999;
+
+// dimension variables
+$d_width: 1000px;
+$d_height: 500px;
+$d_width_half: 500px;
+$d_height_half: 250px;
+
+// font variables
+$d_fontsize: 12px;
+$d_fontsize_large: 14px;
+$d_fontsize_small: 10px;
+$d_fontfamily: "Courier", serif;
+$d_font: $d_fontsize $d_fontfamily;
+$d_font_large: $d_fontsize_large $d_fontfamily;
+$d_font_small: $d_fontsize_small $d_fontfamily;
+
+// user interface mixins
+@mixin window ($w: $d_width_half, $h: $d_height_half) {
+	display: inline-block;
+	width: $w;
+	height: $w;
+	border: thick solid $grey;
+}

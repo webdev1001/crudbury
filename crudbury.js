@@ -295,19 +295,20 @@ function Clock() {
     this.lastTicks, this.ticks = Game.ticks;
     this.getTicks = function () { return Game.ticks - this.ticks };
     this.reset = function () { this.ticks = Game.ticks };
-    this.ticked = function () {
-        if (this.getTicks() > Game.tickInterval) {
-            this.reset();
-            return true;
-        } else return false;
-    };
-    this.tickedByThisMuch = function (i) {
-     if (this.getTicks() > i) {
+}
+Clock.prototype.ticked = function () {
+    if (this.getTicks() > Game.tickInterval) {
         this.reset();
         return true;
-    } else return false;       
+    } else return false;
+};
+Clock.prototype.tickedByThismuch = function (i) {
+    if (this.getTicks() > i) {
+        this.reset();
+        return true;
     }
-}
+    return false;  
+};
 
 /***********************
        INTERFACE          
