@@ -293,9 +293,9 @@ function createMap() {
 
 function Clock() {
     this.lastTicks, this.ticks = Game.ticks;
-    this.getTicks = function () { return Game.ticks - this.ticks };
-    this.reset = function () { this.ticks = Game.ticks };
 }
+Clock.prototype.getTicks = function () { return Game.ticks - this.ticks; };
+Clock.prototype.reset = function () { this.ticks = Game.ticks; };
 Clock.prototype.ticked = function () {
     if (this.getTicks() > Game.tickInterval) {
         this.reset();
